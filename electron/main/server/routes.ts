@@ -109,5 +109,15 @@ export const buildRoutes = (): Hono => {
     return c.json({ ok: true });
   });
 
+  api.post("/play-index", async (c) => {
+    const body = (await c.req.json().catch(() => null)) as { index?: number } | null;
+    const index = Number(body?.index);
+    if (!Number.isInteger(index) || index < 0) {
+      return c.json({ error: "index (integer, >=0) required" }, 400);
+    }
+    playerControl.playAt(index);
+    return c.json({ ok: true });
+  });
+
   return api;
 };

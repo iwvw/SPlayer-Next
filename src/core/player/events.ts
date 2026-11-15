@@ -24,6 +24,7 @@ import {
   nextTrack,
   pause,
   play,
+  playAtIndex,
   playNow,
   prevTrack,
   recoverFromSourceFailure,
@@ -164,6 +165,9 @@ export const handleEvent = async (event: PlayerEvent): Promise<void> => {
     }
     case "playTrack":
       await playNow(event.data.track);
+      break;
+    case "playAt":
+      await playAtIndex(event.data.index);
       break;
     case "pause":
       await pause();

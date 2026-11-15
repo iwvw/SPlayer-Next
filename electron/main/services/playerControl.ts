@@ -104,6 +104,14 @@ export const playerControl = {
   },
   next: (): void => sendToMain("player:event", { type: "next" }),
   prev: (): void => sendToMain("player:event", { type: "prev" }),
+  /**
+   * 跳到队列指定位置并播放
+   *
+   * 复用渲染层的 playAtIndex，与队列面板点击同一路径，不改变队列内容。
+   * @param index - 队列位置
+   */
+  playAt: (index: number): void =>
+    sendToMain("player:event", { type: "playAt", data: { index } }),
   setShuffle: (mode: ShuffleMode): void =>
     sendToMain("player:event", { type: "setShuffle", data: { mode } }),
   setRepeat: (mode: RepeatMode): void =>

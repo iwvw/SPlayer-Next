@@ -18,6 +18,7 @@ interface ClientMessage {
   op: string;
   positionMs?: number;
   volume?: number;
+  index?: number;
 }
 
 const ack = (ws: WSContext, op: string): void => {
@@ -60,6 +61,14 @@ const dispatchCommand = async (ws: WSContext, msg: ClientMessage): Promise<void>
           return fail(ws, msg.op, "volume (number, 0..1) required");
         }
         playerControl.setVolume(volume);
+        return ack(ws, msg.op);
+      }
+      case "playAt": {
+        const index = Number(msg.index);
+        if (!Number.isInteger(index) || index < 0) {
+          return fail(ws, msg.op, "index (integer, >=0) required");
+        }
+        playerControl.playAt(index);
         return ack(ws, msg.op);
       }
       default:
