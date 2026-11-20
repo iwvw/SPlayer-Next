@@ -10,15 +10,24 @@
  */
 
 import type { WSContext } from "hono/ws";
+import { z } from "zod/v4";
 import { serverLog } from "@main/utils/logger";
 import { playerControl } from "@main/services/playerControl";
+import { trackSchema } from "@main/services/music";
 import { addWsClient, removeWsClient, getWsClientCount } from "./broadcast";
+
+/** 单次 WS 消息允许携带的最大曲目数 */
+const WS_MAX_QUEUE_TRACKS = 2000;
 
 interface ClientMessage {
   op: string;
   positionMs?: number;
   volume?: number;
   index?: number;
+  mode?: string;
+  track?: unknown;
+  tracks?: unknown;
+  position?: "next" | "end";
 }
 
 const ack = (ws: WSContext, op: string): void => {
@@ -69,6 +78,46 @@ const dispatchCommand = async (ws: WSContext, msg: ClientMessage): Promise<void>
           return fail(ws, msg.op, "index (integer, >=0) required");
         }
         playerControl.playAt(index);
+        return ack(ws, msg.op);
+      }
+      case "setRepeat": {
+        const mode = msg.mode;
+        if (mode !== "list" && mode !== "one") {
+          return fail(ws, msg.op, "mode (list|one) required");
+        }
+        playerControl.setRepeat(mode);
+        return ack(ws, msg.op);
+      }
+      case "setShuffle": {
+        const mode = msg.mode;
+        if (mode !== "on" && mode !== "off") {
+          return fail(ws, msg.op, "mode (on|off) required");
+        }
+        playerControl.setShuffle(mode);
+        return ack(ws, msg.op);
+      }
+      case "playTrack": {
+        const parsed = trackSchema.safeParse(msg.track);
+        if (!parsed.success) {
+          return fail(ws, msg.op, "track (Track) required");
+        }
+        playerControl.playTrack(parsed.data);
+        return ack(ws, msg.op);
+      }
+      case "playQueue": {
+        const parsed = z.array(trackSchema).min(1).max(WS_MAX_QUEUE_TRACKS).safeParse(msg.tracks);
+        if (!parsed.success) {
+          return fail(ws, msg.op, `tracks (Track[1..${WS_MAX_QUEUE_TRACKS}]) required`);
+        }
+        playerControl.playQueue(parsed.data);
+        return ack(ws, msg.op);
+      }
+      case "addToQueue": {
+        const parsed = z.array(trackSchema).min(1).max(WS_MAX_QUEUE_TRACKS).safeParse(msg.tracks);
+        if (!parsed.success) {
+          return fail(ws, msg.op, "tracks (Track[]) required");
+        }
+        playerControl.addToQueue(parsed.data, msg.position === "end" ? "end" : "next");
         return ack(ws, msg.op);
       }
       default:

@@ -248,6 +248,7 @@ export type PlayerEvent =
   | { type: "prev" }
   | { type: "playTrack"; data: { track: Track } }
   | { type: "playAt"; data: { index: number } }
+  | { type: "playQueue"; data: { tracks: Track[] } }
   | { type: "setShuffle"; data: { mode: ShuffleMode } }
   | { type: "setRepeat"; data: { mode: RepeatMode } }
   | { type: "getQueue"; data: { requestId: string; offset: number; limit: number } }

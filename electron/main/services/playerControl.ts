@@ -118,6 +118,14 @@ export const playerControl = {
     sendToMain("player:event", { type: "setRepeat", data: { mode } }),
   playTrack: (track: Track): void =>
     sendToMain("player:event", { type: "playTrack", data: { track } }),
+  /**
+   * 用给定曲目替换整个队列并从第一首开始播放
+   *
+   * 供外部 API 实现「按专辑/歌手播放」这类歌单切换。
+   * @param tracks - 新的队列内容
+   */
+  playQueue: (tracks: Track[]): void =>
+    sendToMain("player:event", { type: "playQueue", data: { tracks } }),
   addToQueue: (tracks: Track[], position: "next" | "end"): void =>
     sendToMain("player:event", { type: "addToQueue", data: { tracks, position } }),
   seek,

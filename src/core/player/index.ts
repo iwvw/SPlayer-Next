@@ -932,6 +932,22 @@ export const exitHeartMode = (): void => {
 };
 
 /**
+ * 用给定曲目替换整个队列并从第一首开始播放
+ *
+ * 供外部 API 实现「按专辑/歌手播放」这类歌单切换，行为与心动模式一致但不进入该模式。
+ * @param tracks - 新的队列内容
+ */
+export const playQueue = async (tracks: readonly Track[]): Promise<void> => {
+  if (tracks.length === 0) return;
+  const status = useStatusStore();
+  queue.setQueue(tracks);
+  status.playIndex = 0;
+  status.fmMode = false;
+  status.heartMode = false;
+  await loadTrack(status.currentTrack, status.currentPlaybackContext);
+};
+
+/**
  * 启动私人 FM 播放
  * @param options - 可选的 FM 模式与场景选项
  * @returns 是否成功进入并开始播放
